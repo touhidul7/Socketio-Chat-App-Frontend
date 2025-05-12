@@ -11,7 +11,7 @@ const UserLogin = ({ setUser }) => {
   const handleUser = (e) => {
     e.preventDefault();
     if (passWord === "admin") {
-      toast.success('Successfully toasted!');
+      toast.success('Successfully Loged In!');
       localStorage.setItem("user", userName);
       localStorage.setItem(
         "avatar",
