@@ -10,7 +10,7 @@ const UserLogin = ({ setUser }) => {
 
   const handleUser = (e) => {
     e.preventDefault();
-    if (userName && passWord === "admin") {
+    if (passWord === "admin") {
       toast.success('Successfully toasted!');
       localStorage.setItem("user", userName);
       localStorage.setItem(
