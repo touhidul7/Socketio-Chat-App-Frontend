@@ -30,13 +30,22 @@ const ChatContainer = () => {
   }, [setChats, socketio]);
 
   const addMessage = (chat) => {
-    const newChat = {
-      username: localStorage.getItem("user"),
-      message: chat,
-      avatar: localStorage.getItem("avatar"),
-    };
-    socketio.emit('newMessage', newChat)
+  const newChat = {
+    username: localStorage.getItem("user"),
+    message: chat,
+    avatar: localStorage.getItem("avatar"),
+    status: "sending", // New status field
+    tempId: Date.now(), // Unique temporary ID
   };
+
+  setChats((prev) => [...prev, newChat]); // Optimistic UI update
+
+  // Emit message to server
+  socketio.emit("newMessage", newChat);
+
+  // You can remove or update this message once the server confirms it
+};
+
 
   const toggleDropdown = () => {
     setDropdownVisible(!dropdownVisible);
