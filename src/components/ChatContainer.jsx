@@ -1,74 +1,75 @@
-/* eslint-disable no-unused-vars */
 import React, { useEffect, useRef, useState } from "react";
 import ChatLists from "./ChatLists";
-// import InputText from "./InputText";
 import UserLogin from "./UserLogin";
-import socketIOClient from "socket.io-client";
 import DInput from "./demoinput/DInput";
+import socketIOClient from "socket.io-client";
 
 const ChatContainer = () => {
   const [user, setUser] = useState(localStorage.getItem("user"));
   const [avatar, setAvatar] = useState(localStorage.getItem("avatar"));
-  const SERVER_API = import.meta.env.VITE_SERVER_API;
-  const socketio = socketIOClient(SERVER_API);
   const [chats, setChats] = useState([]);
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
-  useEffect(() => {
-    socketio.on("chat", (chats) => {
-      setChats(chats);
-    });
+  const socketRef = useRef(null); // ✅ Use ref for persistent socket instance
+  const SERVER_API = import.meta.env.VITE_SERVER_API;
 
-    socketio.on('message', (msg) => {
-      setChats((prevChats) => [...prevChats, msg])
-    })
+  useEffect(() => {
+    // ✅ Only create socket once
+    if (!socketRef.current) {
+      socketRef.current = socketIOClient(SERVER_API);
+
+      socketRef.current.on("chat", (chats) => {
+        setChats(chats);
+      });
+
+      socketRef.current.on("message", (msg) => {
+        setChats((prevChats) => [...prevChats, msg]);
+      });
+    }
 
     return () => {
-      socketio.off('chat')
-      socketio.off('message')
-    }
-  }, [setChats, socketio]);
+      if (socketRef.current) {
+        socketRef.current.disconnect(); // ✅ Clean up on unmount
+        socketRef.current = null;
+      }
+    };
+  }, [SERVER_API]);
 
   const addMessage = (chat) => {
-  const newChat = {
-    username: localStorage.getItem("user"),
-    message: chat,
-    avatar: localStorage.getItem("avatar"),
-    status: "sending", // New status field
-    tempId: Date.now(), // Unique temporary ID
+    const tempId = Date.now().toString(); // optional: for sending UI
+    const newChat = {
+      username: localStorage.getItem("user"),
+      message: chat,
+      avatar: localStorage.getItem("avatar"),
+      timeStamp: Date.now(),
+      tempId,
+    };
+
+    setChats((prev) => [...prev, { ...newChat, sending: true }]); // optional for UI
+    socketRef.current.emit("newMessage", newChat);
   };
-
-  setChats((prev) => [...prev, newChat]); // Optimistic UI update
-
-  // Emit message to server
-  socketio.emit("newMessage", newChat);
-
-  // You can remove or update this message once the server confirms it
-};
-
 
   const toggleDropdown = () => {
     setDropdownVisible(!dropdownVisible);
   };
 
   const Logout = () => {
-    localStorage.removeItem("user")
-    localStorage.removeItem('avatar')
-    setUser('')
-    setAvatar('')
-  }
+    localStorage.removeItem("user");
+    localStorage.removeItem("avatar");
+    setUser("");
+    setAvatar("");
+  };
 
   return (
     <div>
-        
       {user ? (
         <div className="home">
           <div className="chats_header">
             <h2>BEGGER CHAT</h2>
             <div className="Profile" onClick={toggleDropdown}>
               <h4>
-              <img className="headerlogo" src={avatar} alt="Profile" /> 
-              {user}
+                <img className="headerlogo" src={avatar} alt="Profile" />
+                {user}
               </h4>
               {dropdownVisible && (
                 <div className="dropdown">
@@ -80,8 +81,7 @@ const ChatContainer = () => {
             </div>
           </div>
           <ChatLists chats={chats} />
-          {/* <InputText addMessage={addMessage} /> */}
-          <DInput addMessage={addMessage}/>
+          <DInput addMessage={addMessage} />
         </div>
       ) : (
         <UserLogin setUser={setUser} />
