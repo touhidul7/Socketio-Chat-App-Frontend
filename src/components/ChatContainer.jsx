@@ -1,14 +1,16 @@
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useRef, useState } from "react";
 import ChatLists from "./ChatLists";
-import InputText from "./InputText";
+// import InputText from "./InputText";
 import UserLogin from "./UserLogin";
 import socketIOClient from "socket.io-client";
+import DInput from "./demoinput/DInput";
 
 const ChatContainer = () => {
   const [user, setUser] = useState(localStorage.getItem("user"));
   const [avatar, setAvatar] = useState(localStorage.getItem("avatar"));
-  const socketio = socketIOClient("https://react-chat-app-server-3ucv1q2be.vercel.app");/* http://192.168.0.199:3002  https://react-chat-app-server-3ucv1q2be.vercel.app/*/
+  const SERVER_API = import.meta.env.VITE_SERVER_API;
+  const socketio = socketIOClient(SERVER_API);
   const [chats, setChats] = useState([]);
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -25,7 +27,7 @@ const ChatContainer = () => {
       socketio.off('chat')
       socketio.off('message')
     }
-  }, []);
+  }, [setChats, socketio]);
 
   const addMessage = (chat) => {
     const newChat = {
@@ -49,6 +51,7 @@ const ChatContainer = () => {
 
   return (
     <div>
+        
       {user ? (
         <div className="home">
           <div className="chats_header">
@@ -68,7 +71,8 @@ const ChatContainer = () => {
             </div>
           </div>
           <ChatLists chats={chats} />
-          <InputText addMessage={addMessage} />
+          {/* <InputText addMessage={addMessage} /> */}
+          <DInput addMessage={addMessage}/>
         </div>
       ) : (
         <UserLogin setUser={setUser} />
