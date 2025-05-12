@@ -10,7 +10,7 @@ const ChatLists = ({ chats }) => {
             <div className='chat_sender'>
                 <p>
                     {message}
-                    {status === "sending" && <span className="text-xs text-gray-400 ml-2">(Sending...)</span>}
+                    {status === "sending" && <span className="text-xs text-gray-100 ml-2">(Sending...)</span>}
                 </p>
             </div>
         );
